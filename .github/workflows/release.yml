@@ -70,7 +70,7 @@ jobs:
           tar -czvf jibclaw-launcher_linux_amd64.tar.gz jibclaw-launcher-linux-amd64 picoclaw
 
       - name: 📤 Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-binaries
           path: |
@@ -128,7 +128,7 @@ jobs:
           Compress-Archive -Path jibclaw-launcher-windows-amd64.exe, picoclaw.exe -DestinationPath jibclaw-launcher_windows_amd64.zip
 
       - name: 📤 Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-binaries
           path: |
@@ -207,7 +207,7 @@ jobs:
           zip jibclaw-launcher_darwin_arm64.zip jibclaw-launcher-darwin-arm64 picoclaw
 
       - name: 📤 Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-binaries
           path: |
