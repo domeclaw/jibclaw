@@ -201,6 +201,26 @@ func DefaultConfig() *Config {
 			// Add your API key to the model you want to use
 			// ============================================
 
+			// DomeClaw - https://api.domeclaw.com
+			{
+				ModelName: "domeclaw",
+				Model:     "domeclaw/domeclaw",
+				APIBase:   "https://api.domeclaw.com/v1",
+				APIKey:    "",
+			},
+			{
+				ModelName: "qwen-code-plan",
+				Model:     "domeclaw/qwen3-coder-plus",
+				APIBase:   "https://coding-intl.dashscope.aliyuncs.com/v1",
+				APIKey:    "",
+			},
+			{
+				ModelName: "byteplus-code-plan",
+				Model:     "domeclaw/kimi-k2.5",
+				APIBase:   "https://ark.ap-southeast.bytepluses.com/api/coding/v3",
+				APIKey:    "",
+			},
+
 			// Zhipu AI (智谱) - https://open.bigmodel.cn/usercenter/apikeys
 			{
 				ModelName: "glm-4.7",
