@@ -1,4 +1,4 @@
-name: 🐳 Release - Build & Push Docker Image
+name: 🚀 Release - Build Binary & Docker Image
 
 on:
   push:
@@ -14,16 +14,19 @@ jobs:
     name: 🏗️ Build Binary & Docker Image
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
       # ── Checkout ──────────────────────────────
       - name: 📥 Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       # ── Setup Go ──────────────────────────────
       - name: 🔧 Setup Go
+        id: setup-go
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -37,6 +40,55 @@ jobs:
       # ── Setup pnpm ────────────────────────────
       - name: 🔧 Setup pnpm
         run: corepack enable && corepack prepare pnpm@latest --activate
+
+      # ── Build Frontend ────────────────────────
+      - name: 🎨 Build Frontend
+        run: |
+          cd web/frontend
+          pnpm install
+          pnpm build:backend
+
+      # ── Build jibclaw binary ──────────────────
+      - name: 🔨 Build jibclaw
+        run: |
+          go build -ldflags="-s -w" -o jibclaw ./cmd/picoclaw
+
+      # ── Build jibclaw-launcher binary ─────────
+      - name: 🔨 Build jibclaw-launcher
+        run: |
+          CGO_ENABLED=1 go build -ldflags="-s -w" -o jibclaw-launcher ./web/backend
+
+      # ── Create archives ───────────────────────
+      - name: 📦 Create Linux archives (tar.gz)
+        run: |
+          tar -czvf jibclaw_linux_amd64.tar.gz jibclaw
+          tar -czvf jibclaw-launcher_linux_amd64.tar.gz jibclaw-launcher
+
+      - name: 📦 Create Windows archives (zip)
+        run: |
+          zip jibclaw_windows_amd64.zip jibclaw
+          zip jibclaw-launcher_windows_amd64.zip jibclaw-launcher
+
+      - name: 📦 Create macOS archives (zip)
+        run: |
+          zip jibclaw_darwin_amd64.zip jibclaw
+          zip jibclaw-launcher_darwin_amd64.zip jibclaw-launcher
+
+      # ── Create Release ────────────────────────
+      - name: 📝 Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            jibclaw_linux_amd64.tar.gz
+            jibclaw-launcher_linux_amd64.tar.gz
+            jibclaw_windows_amd64.zip
+            jibclaw-launcher_windows_amd64.zip
+            jibclaw_darwin_amd64.zip
+            jibclaw-launcher_darwin_amd64.zip
+          generate_release_notes: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ── Set up QEMU ───────────────────────────
       - name: 📦 Set up QEMU
@@ -63,7 +115,7 @@ jobs:
           echo "ghcr_tag=${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:${tag}" >> "$GITHUB_OUTPUT"
           echo "ghcr_latest=${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:latest" >> "$GITHUB_OUTPUT"
 
-      # ── Build & Push ──────────────────────────
+      # ── Build & Push Docker Image ─────────────
       - name: 🚀 Build and push Docker image
         uses: docker/build-push-action@v7
         with:
@@ -72,6 +124,6 @@ jobs:
           tags: |
             ${{ steps.tags.outputs.ghcr_tag }}
             ${{ steps.tags.outputs.ghcr_latest }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type:gha
+          cache-to: type:gha,mode=max
           platforms: linux/amd64,linux/arm64,linux/riscv64
