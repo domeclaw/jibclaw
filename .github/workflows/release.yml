@@ -10,49 +10,39 @@ env:
   GHCR_IMAGE_NAME: ${{ github.repository_owner }}/jibclaw
 
 jobs:
-  release:
-    name: 🏗️ Build Binary & Docker Image
+  # ──────────────────────────────────────────────────────────
+  # Build binaries for each platform
+  # ──────────────────────────────────────────────────────────
+  build-linux:
+    name: 🐧 Build Linux Binaries
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-
     steps:
-      # ── Checkout ──────────────────────────────
-      - name: 📥 Checkout repository
+      - name: 📥 Checkout
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
-      # ── Setup Go ──────────────────────────────
       - name: 🔧 Setup Go
-        id: setup-go
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
 
-      # ── Setup Node.js ─────────────────────────
       - name: 🔧 Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 22
 
-      # ── Setup pnpm ────────────────────────────
       - name: 🔧 Setup pnpm
         run: corepack enable && corepack prepare pnpm@latest --activate
 
-      # ── Run go generate ───────────────────────
       - name: 🔧 Run go generate
         run: go generate ./...
 
-      # ── Build Frontend ────────────────────────
       - name: 🎨 Build Frontend
         run: |
           cd web/frontend
           pnpm install
           pnpm build:backend
 
-      # ── Build jibclaw binary (multi-platform) ─
+      # Build jibclaw (Linux AMD64 & ARM64 - no CGO)
       - name: 🔨 Build jibclaw (Linux AMD64)
         run: |
           GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-linux-amd64 ./cmd/picoclaw
@@ -61,10 +51,106 @@ jobs:
         run: |
           GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o jibclaw-linux-arm64 ./cmd/picoclaw
 
+      # Build jibclaw-launcher (Linux AMD64 with CGO)
+      - name: 🔨 Build jibclaw-launcher (Linux AMD64)
+        run: |
+          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-launcher-linux-amd64 ./web/backend
+
+      - name: 📦 Create archives
+        run: |
+          tar -czvf jibclaw_linux_amd64.tar.gz jibclaw-linux-amd64
+          tar -czvf jibclaw-launcher_linux_amd64.tar.gz jibclaw-launcher-linux-amd64
+          tar -czvf jibclaw_linux_arm64.tar.gz jibclaw-linux-arm64
+
+      - name: 📤 Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binaries
+          path: |
+            jibclaw_linux_amd64.tar.gz
+            jibclaw-launcher_linux_amd64.tar.gz
+            jibclaw_linux_arm64.tar.gz
+
+  build-windows:
+    name: 🪟 Build Windows Binaries
+    runs-on: windows-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v6
+
+      - name: 🔧 Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: 🔧 Setup pnpm
+        run: corepack enable && corepack prepare pnpm@latest --activate
+
+      - name: 🔧 Run go generate
+        run: go generate ./...
+
+      - name: 🎨 Build Frontend
+        run: |
+          cd web/frontend
+          pnpm install
+          pnpm build:backend
+
       - name: 🔨 Build jibclaw (Windows AMD64)
         run: |
-          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-windows-amd64.exe ./cmd/picoclaw
+          go build -ldflags="-s -w" -o jibclaw-windows-amd64.exe ./cmd/picoclaw
 
+      - name: 🔨 Build jibclaw-launcher (Windows AMD64)
+        run: |
+          go build -ldflags="-s -w" -o jibclaw-launcher-windows-amd64.exe ./web/backend
+
+      - name: 📦 Create archives
+        run: |
+          Compress-Archive -Path jibclaw-windows-amd64.exe -DestinationPath jibclaw_windows_amd64.zip
+          Compress-Archive -Path jibclaw-launcher-windows-amd64.exe -DestinationPath jibclaw-launcher_windows_amd64.zip
+
+      - name: 📤 Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binaries
+          path: |
+            jibclaw_windows_amd64.zip
+            jibclaw-launcher_windows_amd64.zip
+
+  build-macos:
+    name: 🍎 Build macOS Binaries
+    runs-on: macos-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v6
+
+      - name: 🔧 Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: 🔧 Setup pnpm
+        run: corepack enable && corepack prepare pnpm@latest --activate
+
+      - name: 🔧 Run go generate
+        run: go generate ./...
+
+      - name: 🎨 Build Frontend
+        run: |
+          cd web/frontend
+          pnpm install
+          pnpm build:backend
+
+      # Build jibclaw (AMD64 & ARM64)
       - name: 🔨 Build jibclaw (Darwin AMD64)
         run: |
           GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-darwin-amd64 ./cmd/picoclaw
@@ -73,69 +159,89 @@ jobs:
         run: |
           GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o jibclaw-darwin-arm64 ./cmd/picoclaw
 
-      # ── Build jibclaw-launcher binary (Linux AMD64 only - requires CGO)
-      - name: 🔨 Build jibclaw-launcher (Linux AMD64)
+      # Build jibclaw-launcher (Universal binary หรือแยก architecture)
+      - name: 🔨 Build jibclaw-launcher (Darwin AMD64)
         run: |
-          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-launcher-linux-amd64 ./web/backend
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-launcher-darwin-amd64 ./web/backend
 
-      # ── Create archives ───────────────────────
-      - name: 📦 Create Linux archives (tar.gz)
+      - name: 🔨 Build jibclaw-launcher (Darwin ARM64)
         run: |
-          tar -czvf jibclaw_linux_amd64.tar.gz jibclaw-linux-amd64
-          tar -czvf jibclaw-launcher_linux_amd64.tar.gz jibclaw-launcher-linux-amd64
-          tar -czvf jibclaw_linux_arm64.tar.gz jibclaw-linux-arm64
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o jibclaw-launcher-darwin-arm64 ./web/backend
 
-      - name: 📦 Create Windows archives (zip)
-        run: |
-          zip jibclaw_windows_amd64.zip jibclaw-windows-amd64.exe
-
-      - name: 📦 Create macOS archives (zip)
+      - name: 📦 Create archives
         run: |
           zip jibclaw_darwin_amd64.zip jibclaw-darwin-amd64
           zip jibclaw_darwin_arm64.zip jibclaw-darwin-arm64
+          zip jibclaw-launcher_darwin_amd64.zip jibclaw-launcher-darwin-amd64
+          zip jibclaw-launcher_darwin_arm64.zip jibclaw-launcher-darwin-arm64
 
-      # ── Create Release ────────────────────────
+      - name: 📤 Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-binaries
+          path: |
+            jibclaw_darwin_amd64.zip
+            jibclaw_darwin_arm64.zip
+            jibclaw-launcher_darwin_amd64.zip
+            jibclaw-launcher_darwin_arm64.zip
+
+  # ──────────────────────────────────────────────────────────
+  # Create Release with all binaries
+  # ──────────────────────────────────────────────────────────
+  release:
+    name: 📝 Create Release
+    needs: [build-linux, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 📥 Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          merge-multiple: true
+
       - name: 📝 Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            jibclaw_linux_amd64.tar.gz
-            jibclaw-launcher_linux_amd64.tar.gz
-            jibclaw_linux_arm64.tar.gz
-            jibclaw_windows_amd64.zip
-            jibclaw_darwin_amd64.zip
-            jibclaw_darwin_arm64.zip
+          files: ./artifacts/*
           generate_release_notes: true
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── Set up QEMU ───────────────────────────
+  # ──────────────────────────────────────────────────────────
+  # Build & Push Docker Image
+  # ──────────────────────────────────────────────────────────
+  docker:
+    name: 🐳 Build Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v6
+
       - name: 📦 Set up QEMU
         uses: docker/setup-qemu-action@v4
 
-      # ── Docker Buildx ─────────────────────────
       - name: 🔧 Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # ── Login to GHCR ─────────────────────────
-      - name: 🔑 Login to GitHub Container Registry
+      - name: 🔑 Login to GHCR
         uses: docker/login-action@v4
         with:
           registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── Metadata (tags & labels) ──────────────
       - name: 🏷️ Prepare image tags
         id: tags
-        shell: bash
         run: |
           tag="${{ github.ref_name }}"
           echo "ghcr_tag=${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:${tag}" >> "$GITHUB_OUTPUT"
           echo "ghcr_latest=${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:latest" >> "$GITHUB_OUTPUT"
 
-      # ── Build & Push Docker Image ─────────────
       - name: 🚀 Build and push Docker image
         uses: docker/build-push-action@v7
         with:
@@ -144,5 +250,4 @@ jobs:
           tags: |
             ${{ steps.tags.outputs.ghcr_tag }}
             ${{ steps.tags.outputs.ghcr_latest }}
-
           platforms: linux/amd64,linux/arm64
