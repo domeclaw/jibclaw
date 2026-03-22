@@ -127,6 +127,78 @@ colorBlue + "     ██║██║██╔══██╗██╔═══�
 - `workspace/SOUL.md` - "I am jibclaw..."
 - `workspace/USER.md` - Name: JIBClaw
 
+## Custom Provider Patches
+
+This section documents custom patches for adding new providers (e.g., domeclaw) that are not in upstream picoclaw.
+
+### 5. Backend Provider Protocol
+
+**File:** `pkg/providers/factory_provider.go`
+
+Add new provider to the OpenAI-compatible providers case (around line 116-120):
+
+```go
+case "litellm", "openrouter", ..., "domeclaw":
+```
+
+**What this does:**
+- Registers the provider as an OpenAI-compatible HTTP provider
+- Allows using `domeclaw/model-name` format in config.json
+- Gateway will route requests to the provider's API base
+
+### 6. Frontend Provider Display
+
+**Files:** `web/frontend/src/components/models/`
+
+#### 6.1 Provider Label
+**File:** `provider-label.ts`
+
+Add to `PROVIDER_LABELS`:
+```typescript
+domeclaw: "DomeClaw",
+```
+
+#### 6.2 Provider Icon
+**File:** `provider-icon.tsx`
+
+Add to `PROVIDER_ICON_SLUGS`:
+```typescript
+domeclaw: "domeclaw",
+```
+
+Add to `PROVIDER_DOMAINS`:
+```typescript
+domeclaw: "domeclaw.com",
+```
+
+#### 6.3 Provider Priority
+**File:** `models-page.tsx`
+
+Add to `PROVIDER_PRIORITY` (use negative number for top priority):
+```typescript
+domeclaw: -1,
+```
+
+### 7. Docker Symlink
+
+**File:** `Dockerfile`
+
+Add after copying binaries:
+```dockerfile
+# Create symlink for backward compatibility (launcher looks for picoclaw binary)
+RUN ln -s /usr/local/bin/jibclaw /usr/local/bin/picoclaw
+```
+
+### 8. Missing OAuth File Fix
+
+**File:** `pkg/auth/oauth.go`
+
+**Note:** This file was accidentally deleted once. If missing after sync:
+1. Copy from upstream: `https://github.com/sipeed/picoclaw/blob/main/pkg/auth/oauth.go`
+2. Or restore from git history
+
+---
+
 ### Post-Sync Checklist
 
 When pulling updates from upstream, run through this checklist:
@@ -141,7 +213,11 @@ When pulling updates from upstream, run through this checklist:
    - `web/frontend/src/i18n/locales/en.json` - Re-apply 3 strings
    - `web/frontend/src/i18n/locales/zh.json` - Re-apply 3 strings
 5. [ ] Verify `pkg/auth/oauth.go` exists (was accidentally deleted once)
-4. [ ] Build binaries and test:
+6. [ ] Check if `pkg/providers/factory_provider.go` was modified
+   - Re-apply domeclaw to provider case list
+7. [ ] Check if frontend provider files were modified
+   - Re-apply domeclaw entries to provider-label.ts, provider-icon.tsx, models-page.tsx
+8. [ ] Build binaries and test:
    ```bash
    go build -ldflags="-s -w" -o jibclaw ./cmd/picoclaw
    CGO_ENABLED=1 go build -ldflags="-s -w" -o jibclaw-launcher ./web/backend
@@ -168,4 +244,4 @@ CGO_ENABLED=1 go build -ldflags="-s -w" -o jibclaw-launcher ./web/backend
 
 ---
 
-*Last updated: March 22, 2026 (added web/frontend rebranding)*
+*Last updated: March 23, 2026 (added custom provider patches for domeclaw)*
