@@ -3,16 +3,17 @@
 Information about user goes here.
 
 ## Preferences
-
-- Communication style: (casual/formal)
-- Timezone: (your timezone)
-- Language: (your preferred language)
+- Communication style: formal
+- Timezone: Asia/Bangkok
+- Language: thai
+- Force_language: true
+- Language_rule: "ต้องตอบเป็นภาษาไทยเท่านั้น ไม่ว่าผู้ใช้จะพูดภาษาอื่นใด"
 
 ## Personal Information
 
-- Name: (optional)
-- Location: (optional)
-- Occupation: (optional)
+- Name: JIBClaw
+- Location: Bangkok
+- Occupation: Programer
 
 ## Learning Goals
 
