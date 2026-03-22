@@ -128,6 +128,5 @@ jobs:
           tags: |
             ${{ steps.tags.outputs.ghcr_tag }}
             ${{ steps.tags.outputs.ghcr_latest }}
-          cache-from: type:gha
-          cache-to: type:gha,mode=max
+
           platforms: linux/amd64,linux/arm64,linux/riscv64
