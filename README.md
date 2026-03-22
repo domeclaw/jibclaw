@@ -1,5 +1,3 @@
----
-
 <div align="center">
   <img src="assets/jibclaw-logo.png" alt="JIBClaw" width="512">
 
@@ -8,8 +6,6 @@
   <h3>Ultra-Efficient AI Assistant with JIBChain V2 Integration</h3>
 
 </div>
-
----
 
 > **JIBClaw** is a fork of PicoClaw by JIB Computer. It is written entirely in **Go** with added blockchain integration for JIBChain V2.
 
@@ -142,8 +138,6 @@ For detailed guides, see the `docs/` directory.
 ## 🤝 Contribute
 
 PRs welcome! JIBClaw is open source under MIT License.
-
----
 
 <div align="center">
   <p><strong>JIBClaw</strong> - Powered by <strong>JIB Computer</strong></p>
