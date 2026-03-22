@@ -52,25 +52,31 @@ jobs:
           pnpm install
           pnpm build:backend
 
-      # ── Build jibclaw binary (Linux AMD64) ────
+      # ── Build jibclaw binary (multi-platform) ─
       - name: 🔨 Build jibclaw (Linux AMD64)
         run: |
           GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-linux-amd64 ./cmd/picoclaw
 
-      # ── Build jibclaw-launcher binary (Linux AMD64)
-      - name: 🔨 Build jibclaw-launcher (Linux AMD64)
-        run: |
-          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-launcher-linux-amd64 ./web/backend
-
-      # ── Build jibclaw binary (Linux ARM64) ────
       - name: 🔨 Build jibclaw (Linux ARM64)
         run: |
           GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o jibclaw-linux-arm64 ./cmd/picoclaw
 
-      # ── Build jibclaw-launcher binary (Linux ARM64)
-      - name: 🔨 Build jibclaw-launcher (Linux ARM64)
+      - name: 🔨 Build jibclaw (Windows AMD64)
         run: |
-          CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o jibclaw-launcher-linux-arm64 ./web/backend
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-windows-amd64.exe ./cmd/picoclaw
+
+      - name: 🔨 Build jibclaw (Darwin AMD64)
+        run: |
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-darwin-amd64 ./cmd/picoclaw
+
+      - name: 🔨 Build jibclaw (Darwin ARM64)
+        run: |
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o jibclaw-darwin-arm64 ./cmd/picoclaw
+
+      # ── Build jibclaw-launcher binary (Linux AMD64 only - requires CGO)
+      - name: 🔨 Build jibclaw-launcher (Linux AMD64)
+        run: |
+          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-launcher-linux-amd64 ./web/backend
 
       # ── Create archives ───────────────────────
       - name: 📦 Create Linux archives (tar.gz)
@@ -78,17 +84,13 @@ jobs:
           tar -czvf jibclaw_linux_amd64.tar.gz jibclaw-linux-amd64
           tar -czvf jibclaw-launcher_linux_amd64.tar.gz jibclaw-launcher-linux-amd64
           tar -czvf jibclaw_linux_arm64.tar.gz jibclaw-linux-arm64
-          tar -czvf jibclaw-launcher_linux_arm64.tar.gz jibclaw-launcher-linux-arm64
 
       - name: 📦 Create Windows archives (zip)
         run: |
-          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-windows-amd64.exe ./cmd/picoclaw
           zip jibclaw_windows_amd64.zip jibclaw-windows-amd64.exe
 
       - name: 📦 Create macOS archives (zip)
         run: |
-          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o jibclaw-darwin-amd64 ./cmd/picoclaw
-          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o jibclaw-darwin-arm64 ./cmd/picoclaw
           zip jibclaw_darwin_amd64.zip jibclaw-darwin-amd64
           zip jibclaw_darwin_arm64.zip jibclaw-darwin-arm64
 
@@ -100,7 +102,6 @@ jobs:
             jibclaw_linux_amd64.tar.gz
             jibclaw-launcher_linux_amd64.tar.gz
             jibclaw_linux_arm64.tar.gz
-            jibclaw-launcher_linux_arm64.tar.gz
             jibclaw_windows_amd64.zip
             jibclaw_darwin_amd64.zip
             jibclaw_darwin_arm64.zip
