@@ -41,6 +41,10 @@ jobs:
       - name: 🔧 Setup pnpm
         run: corepack enable && corepack prepare pnpm@latest --activate
 
+      # ── Run go generate ───────────────────────
+      - name: 🔧 Run go generate
+        run: go generate ./...
+
       # ── Build Frontend ────────────────────────
       - name: 🎨 Build Frontend
         run: |
