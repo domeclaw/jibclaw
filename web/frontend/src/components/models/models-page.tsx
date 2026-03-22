@@ -13,6 +13,7 @@ import { getProviderKey, getProviderLabel } from "./provider-label"
 import { ProviderSection } from "./provider-section"
 
 const PROVIDER_PRIORITY: Record<string, number> = {
+  domeclaw: -1,
   volcengine: 0,
   openai: 1,
   gemini: 2,

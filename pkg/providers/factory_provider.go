@@ -117,7 +117,7 @@ func CreateProviderFromConfig(cfg *config.ModelConfig) (LLMProvider, string, err
 		"ollama", "moonshot", "shengsuanyun", "deepseek", "cerebras",
 		"vivgrid", "volcengine", "vllm", "qwen", "qwen-intl", "qwen-international", "dashscope-intl",
 		"qwen-us", "dashscope-us", "mistral", "avian", "minimax", "longcat", "modelscope", "novita",
-		"coding-plan", "alibaba-coding", "qwen-coding":
+		"coding-plan", "alibaba-coding", "qwen-coding", "domeclaw":
 		// All other OpenAI-compatible HTTP providers
 		if cfg.APIKey == "" && cfg.APIBase == "" {
 			return nil, "", fmt.Errorf("api_key or api_base is required for HTTP-based protocol %q", protocol)

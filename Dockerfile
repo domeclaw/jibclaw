@@ -77,6 +77,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 COPY --from=builder /build/jibclaw /usr/local/bin/jibclaw
 COPY --from=builder /build/jibclaw-launcher /usr/local/bin/jibclaw-launcher
 
+# Create symlink for backward compatibility (launcher looks for picoclaw binary)
+RUN ln -s /usr/local/bin/jibclaw /usr/local/bin/picoclaw
+
 # Expose ports
 # 18790 - Gateway HTTP API
 # 18795 - Webhook channel

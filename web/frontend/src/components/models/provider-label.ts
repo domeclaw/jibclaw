@@ -1,4 +1,5 @@
 const PROVIDER_LABELS: Record<string, string> = {
+  domeclaw: "DomeClaw",
   openai: "OpenAI",
   anthropic: "Anthropic",
   gemini: "Google Gemini",
